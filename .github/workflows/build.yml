@@ -1,0 +1,49 @@
+name: Build XOXLOREZ VPN APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Unzip project
+        run: |
+          if [ -f "XoxlorezVPN.zip" ]; then
+            unzip XoxlorezVPN.zip
+            echo "Unzipped successfully"
+          else
+            echo "No zip found, using repo root"
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Grant execute permission for gradlew
+        run: |
+          cd XoxlorezVPN || true
+          chmod +x gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd XoxlorezVPN || true
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: XOXLOREZ-VPN-debug
+          path: XoxlorezVPN/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
